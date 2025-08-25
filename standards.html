@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standards Reference Library</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --gray: #95a5a6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: #f0f4f8; padding: 20px; color: #333; }
+    header { text-align: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    .subtitle { font-size: 1.2rem; opacity: 0.9; max-width: 900px; margin: 0 auto; }
+    .stats-bar { display: flex; justify-content: space-between; background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex-wrap: wrap; gap: 10px; }
+    .stat-item { text-align: center; flex: 1 1 150px; min-width: 120px; margin: 5px; }
+    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--secondary); }
+    .stat-label { font-size: 0.9rem; color: var(--gray); }
+    .filters { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; justify-content: center; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .filter-group { display: flex; flex-direction: column; min-width: 180px; }
+    .filter-group label { font-weight: 600; margin-bottom: 8px; color: var(--dark); }
+    select, input[type="text"] { padding: 12px; border-radius: 5px; border: 1px solid #ddd; background: white; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+    select:focus, input[type="text"]:focus { outline: none; border-color: var(--secondary); box-shadow: 0 0 0 3px rgba(52,152,219,0.2); }
+    .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+    .category { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .category:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+    .category-header { background: var(--secondary); color: white; padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; }
+    .count-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 999px; font-size: 0.85rem; }
+    .category-header::after { content: '\25BC'; font-size: 0.9rem; transition: transform 0.3s ease; }
+    .category-header.active::after { transform: rotate(180deg); }
+    .standards-list { padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .category.active .standards-list { max-height: 1200px; overflow-y: auto; padding: 15px; }
+    .standard-item { padding: 12px 10px; border-bottom: 1px solid #eee; transition: background-color 0.2s ease; display: flex; flex-direction: column; gap: 8px; }
+    .standard-item:hover { background-color: #f9f9f9; }
+    .standard-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .standard-number { font-weight: bold; color: var(--secondary); display: inline-block; min-width: 120px; }
+    .note { font-size: 0.85rem; color: #666; font-style: italic; }
+    .subsection { margin-left: 20px; padding-left: 15px; border-left: 2px solid #ddd; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .standard-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .action-btn { background: #f0f4f8; border: none; border-radius: 4px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s ease; display: flex; align-items: center; gap: 6px; }
+    .action-btn:hover { background: #e0e8f0; }
+    .no-results { text-align: center; padding: 40px; background: white; border-radius: 10px; grid-column: 1 / -1; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-size: 1.2rem; color: #666; display: none; }
+    footer { text-align: center; margin-top: 40px; padding: 25px; background: white; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 999; display: none; }
+    .modal-active { display: flex; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; max-width: 700px; width: 92%; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.5rem; color: #333; transition: color 0.2s; }
+    .close-btn:hover { color: #000; }
+    @media(max-width: 768px) {
+      .stats-bar { flex-direction: column; align-items: center; }
+      .stat-item { min-width: 100px; }
+      .filters { flex-direction: column; }
+      .filter-group { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Standards Reference Library</h1>
+    <p class="subtitle">Filter and browse international standards by region, type, sector, compliance, or keyword.</p>
+  </header>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item">
+      <div class="stat-value" id="statTypes">0</div>
+      <div class="stat-label">Standard Types</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">Total Standards</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statSectors">0</div>
+      <div class="stat-label">Sectors</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statRegions">0</div>
+      <div class="stat-label">Regions</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label for="regionFilter">Region</label>
+      <select id="regionFilter">
+        <option value="">All Regions</option>
+        <option value="Global">Global</option>
+        <option value="USA">USA</option>
+        <option value="Europe">Europe</option>
+        <option value="Asia">Asia</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="standardFilter">Standard Type</label>
+      <select id="standardFilter">
+        <option value="">All Standards</option>
+        <option value="IEC">IEC</option>
+        <option value="ISO">ISO</option>
+        <option value="IEEE">IEEE</option>
+        <option value="EN">EN</option>
+        <option value="MIL-STD">MIL-STD</option>
+        <option value="ANSI">ANSI</option>
+        <option value="UL">UL</option>
+        <option value="IECEx">IECEx</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="sectorFilter">Sector</label>
+      <select id="sectorFilter">
+        <option value="">All Sectors</option>
+        <option value="Electrical">Electrical</option>
+        <option value="Medical">Medical</option>
+        <option value="IT">IT</option>
+        <option value="Transportation">Transportation</option>
+        <option value="Industrial">Industrial</option>
+        <option value="Energy">Energy</option>
+        <option value="Defense">Defense</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="">All Status</option>
+        <option value="Active">Active</option>
+        <option value="Withdrawn">Withdrawn</option>
+        <option value="Draft">Draft</option>
+        <option value="Under Revision">Under Revision</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="keywordFilter">Keyword Search</label>
+      <input type="text" id="keywordFilter" placeholder="Enter keyword..." />
+    </div>
+    <div class="filter-group">
+      <label>&nbsp;</label>
+      <button id="resetFilters" class="action-btn" style="padding: 12px;">Reset Filters</button>
+    </div>
+  </div>
+
+  <div class="container" id="categoriesContainer"></div>
+  <div class="no-results" id="noResults">No results match your filters.</div>
+
+  <footer>
+    <p>Note: This is a reference list. Check official standards bodies for full and latest versions.</p>
+    <p>© <span id="year"></span> Standards Reference Library | Version 2.0</p>
+  </footer>
+
+  <div id="checklistModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <span class="close-btn" aria-label="Close">&times;</span>
+      <h2>Standard Compliance Checklist</h2>
+      <h3 id="standardTitle"></h3>
+      <ul id="checklistItems"></ul>
+      <button id="saveChecklist" class="action-btn" style="margin-top:20px;">
+        <i class="fas fa-save"></i>
+        Save Progress
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Data model
+    const standards = [
+      { id: 'IEC-60601', type: 'IEC', number: 'IEC 60601', title: 'Medical electrical equipment', sector: 'Medical', region: 'Global', status: 'Active', updated: '2020', keywords: ['medical', 'electrical', 'safety'], pdf: '#'},
+      { id: 'IEC-61010', type: 'IEC', number: 'IEC 61010', title: 'Safety requirements for electrical equipment for measurement, control', sector: 'Industrial', region: 'Global', status: 'Active', updated: '2019', keywords: ['measurement', 'control', 'lab'], pdf: '#'},
+      { id: 'ISO-9001', type: 'ISO', number: 'ISO 9001', title: 'Quality management systems', sector: 'Industrial', region: 'Global', status: 'Active', updated: '2015', keywords: ['qms', 'quality'], pdf: '#'},
+      { id: 'ISO-13485', type: 'ISO', number: 'ISO 13485', title: 'Medical devices — Quality management systems', sector: 'Medical', region: 'Global', status: 'Active', updated: '2016', keywords: ['medical', 'qms'], pdf: '#'},
+      { id: 'ISO-26262', type: 'ISO', number: 'ISO 26262', title: 'Road vehicles — Functional safety', sector: 'Transportation', region: 'Global', status: 'Active', updated: '2018', keywords: ['automotive', 'functional safety'], pdf: '#'},
+      { id: 'IEEE-802.11', type: 'IEEE', number: 'IEEE 802.11', title: 'WLAN standard', sector: 'IT', region: 'Global', status: 'Active', updated: '2020', keywords: ['wifi', 'wireless'], pdf: '#'},
+      { id: 'IEEE-802.3', type: 'IEEE', number: 'IEEE 802.3', title: 'Ethernet', sector: 'IT', region: 'Global', status: 'Active', updated: '2018', keywords: ['ethernet', 'lan'], pdf: '#'},
+      { id: 'EN-50178', type: 'EN', number: 'EN 50178', title: 'Electronic equipment for use in power installations', sector: 'Energy', region: 'Europe', status: 'Withdrawn', updated: '2013', keywords: ['energy', 'power'], pdf: '#'},
+      { id: 'EN-60664', type: 'EN', number: 'EN 60664-1', title: 'Insulation coordination for equipment within low-voltage systems', sector: 'Electrical', region: 'Europe', status: 'Active', updated: '2020', keywords: ['insulation', 'lv'], pdf: '#'},
+      { id: 'MIL-STD-810', type: 'MIL-STD', number: 'MIL-STD-810', title: 'Environmental Engineering Considerations and Laboratory Tests', sector: 'Defense', region: 'USA', status: 'Active', updated: '2019', keywords: ['environmental', 'rugged'], pdf: '#'},
+      { id: 'MIL-STD-461', type: 'MIL-STD', number: 'MIL-STD-461', title: 'EMC Requirements for Subsystems and Equipment', sector: 'Defense', region: 'USA', status: 'Active', updated: '2020', keywords: ['emc', 'military'], pdf: '#'},
+      { id: 'ANSI-Z136', type: 'ANSI', number: 'ANSI Z136', title: 'Safe Use of Lasers', sector: 'Medical', region: 'USA', status: 'Under Revision', updated: '2021', keywords: ['laser', 'safety'], pdf: '#'},
+      { id: 'ANSI-ESD-S20.20', type: 'ANSI', number: 'ANSI/ESD S20.20', title: 'Protection of Electrical and Electronic Parts from ESD', sector: 'Industrial', region: 'USA', status: 'Active', updated: '2021', keywords: ['esd', 'protection'], pdf: '#'},
+      { id: 'UL-61010', type: 'UL', number: 'UL 61010', title: 'Safety for Laboratory Equipment', sector: 'Industrial', region: 'USA', status: 'Active', updated: '2018', keywords: ['lab', 'safety'], pdf: '#'},
+      { id: 'UL-508', type: 'UL', number: 'UL 508', title: 'Industrial Control Equipment', sector: 'Industrial', region: 'USA', status: 'Active', updated: '2018', keywords: ['control', 'industrial'], pdf: '#'},
+      { id: 'IECEx-TR', type: 'IECEx', number: 'IECEx TR', title: 'Explosive atmospheres — Testing and certification', sector: 'Energy', region: 'Global', status: 'Draft', updated: '2022', keywords: ['atex', 'explosion'], pdf: '#'},
+      { id: 'IEC-61508', type: 'IEC', number: 'IEC 61508', title: 'Functional safety of E/E/PE safety-related systems', sector: 'Industrial', region: 'Global', status: 'Active', updated: '2010', keywords: ['functional safety'], pdf: '#'},
+      { id: 'ISO-14971', type: 'ISO', number: 'ISO 14971', title: 'Medical devices — Risk management', sector: 'Medical', region: 'Global', status: 'Active', updated: '2019', keywords: ['risk', 'medical'], pdf: '#'},
+      { id: 'EN-50155', type: 'EN', number: 'EN 50155', title: 'Railway applications — Electronic equipment used on rolling stock', sector: 'Transportation', region: 'Europe', status: 'Active', updated: '2017', keywords: ['railway'], pdf: '#'},
+      { id: 'IEEE-1547', type: 'IEEE', number: 'IEEE 1547', title: 'Interconnection and interoperability of distributed energy resources', sector: 'Energy', region: 'USA', status: 'Active', updated: '2018', keywords: ['der', 'grid'], pdf: '#'},
+      { id: 'ISO-21434', type: 'ISO', number: 'ISO/SAE 21434', title: 'Road vehicles — Cybersecurity engineering', sector: 'Transportation', region: 'Global', status: 'Active', updated: '2021', keywords: ['cybersecurity', 'automotive'], pdf: '#'},
+      { id: 'UL-94', type: 'UL', number: 'UL 94', title: 'Tests for flammability of plastic materials', sector: 'Industrial', region: 'USA', status: 'Active', updated: '2013', keywords: ['flammability', 'plastic'], pdf: '#'},
+      { id: 'ANSI-ISA-62443', type: 'ANSI', number: 'ANSI/ISA 62443', title: 'Industrial Automation and Control Systems Security', sector: 'Industrial', region: 'USA', status: 'Active', updated: '2018', keywords: ['security', 'ics'], pdf: '#'},
+      { id: 'IEC-62304', type: 'IEC', number: 'IEC 62304', title: 'Medical device software — Software lifecycle processes', sector: 'Medical', region: 'Global', status: 'Active', updated: '2006', keywords: ['software', 'medical'], pdf: '#'}
+    ];
+
+    const sectorsOrder = ['Medical', 'Electrical', 'IT', 'Transportation', 'Industrial', 'Energy', 'Defense'];
+
+    const sectorChecklists = {
+      'Medical': ['Safety Requirements', 'Electrical Tests', 'Labeling', 'Clinical Evaluation'],
+      'Electrical': ['Voltage Tests', 'Current Rating', 'Short-Circuit Test'],
+      'IT': ['Protocol Compliance', 'Security Test', 'Performance Test'],
+      'Transportation': ['Crash Test', 'Safety Certification', 'Emissions Test'],
+      'Industrial': ['Load Test', 'Durability Test', 'Safety Compliance'],
+      'Energy': ['Efficiency Test', 'Load Regulation', 'Safety'],
+      'Defense': ['Military Spec Test', 'Durability', 'Field Test']
+    };
+
+    const els = {
+      categories: document.getElementById('categoriesContainer'),
+      statTypes: document.getElementById('statTypes'),
+      statTotal: document.getElementById('statTotal'),
+      statSectors: document.getElementById('statSectors'),
+      statRegions: document.getElementById('statRegions'),
+      noResults: document.getElementById('noResults'),
+      regionFilter: document.getElementById('regionFilter'),
+      standardFilter: document.getElementById('standardFilter'),
+      sectorFilter: document.getElementById('sectorFilter'),
+      statusFilter: document.getElementById('statusFilter'),
+      keywordFilter: document.getElementById('keywordFilter'),
+      resetFilters: document.getElementById('resetFilters'),
+      checklistModal: document.getElementById('checklistModal'),
+      checklistTitle: document.getElementById('standardTitle'),
+      checklistItems: document.getElementById('checklistItems'),
+      saveChecklist: document.getElementById('saveChecklist')
+    };
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function groupBySector(items) {
+      const map = new Map();
+      items.forEach(item => {
+        if (!map.has(item.sector)) map.set(item.sector, []);
+        map.get(item.sector).push(item);
+      });
+      return map;
+    }
+
+    function buildCategory(sectorName, items) {
+      const category = document.createElement('div');
+      category.className = 'category';
+      category.dataset.sector = sectorName;
+
+      const header = document.createElement('div');
+      header.className = 'category-header';
+      header.innerHTML = `${sectorName} Standards <span class="count-badge">${items.length}</span>`;
+
+      const list = document.createElement('div');
+      list.className = 'standards-list';
+
+      items.forEach(st => {
+        const item = document.createElement('div');
+        item.className = 'standard-item';
+        item.dataset.type = st.type;
+        item.dataset.sector = st.sector;
+        item.dataset.region = st.region;
+        item.dataset.status = st.status;
+        item.dataset.number = st.number.toLowerCase();
+        item.dataset.title = st.title.toLowerCase();
+        item.dataset.keywords = st.keywords.join(' ').toLowerCase();
+
+        item.innerHTML = `
+          <div class="standard-header">
+            <div>
+              <span class="standard-number">${st.number}</span> ${st.title}
+            </div>
+            <div class="note">Last updated: ${st.updated} • ${st.type} • ${st.region} • ${st.status}</div>
+          </div>
+          <div class="standard-actions">
+            <button class="action-btn details-btn" data-id="${st.id}"><i class="fas fa-info-circle"></i> Details</button>
+            <a class="action-btn" href="${st.pdf}" target="_blank" rel="noopener"><i class="fas fa-download"></i> PDF</a>
+            <button class="action-btn checklist-btn" data-id="${st.id}" data-standard="${st.number}"><i class="fas fa-tasks"></i> Checklist</button>
+          </div>
+        `;
+
+        list.appendChild(item);
+      });
+
+      category.appendChild(header);
+      category.appendChild(list);
+
+      header.addEventListener('click', () => {
+        header.classList.toggle('active');
+        category.classList.toggle('active');
+      });
+
+      return category;
+    }
+
+    function render() {
+      els.categories.innerHTML = '';
+      const bySector = groupBySector(standards);
+      const sectors = Array.from(bySector.keys());
+      const orderedSectors = sectorsOrder.filter(s => bySector.has(s)).concat(sectors.filter(s => !sectorsOrder.includes(s)));
+
+      orderedSectors.forEach(sector => {
+        const cat = buildCategory(sector, bySector.get(sector));
+        els.categories.appendChild(cat);
+      });
+
+      attachActions();
+      updateStats(standards);
+    }
+
+    function updateStats(items) {
+      const types = new Set(items.map(i => i.type));
+      const sectors = new Set(items.map(i => i.sector));
+      const regions = new Set(items.map(i => i.region));
+      els.statTypes.textContent = types.size;
+      els.statTotal.textContent = items.length;
+      els.statSectors.textContent = sectors.size;
+      els.statRegions.textContent = regions.size;
+    }
+
+    function matchesFilters(itemEl) {
+      const r = els.regionFilter.value.trim().toLowerCase();
+      const t = els.standardFilter.value.trim().toLowerCase();
+      const s = els.sectorFilter.value.trim().toLowerCase();
+      const st = els.statusFilter.value.trim().toLowerCase();
+      const k = els.keywordFilter.value.trim().toLowerCase();
+
+      const inRegion = !r || itemEl.dataset.region.toLowerCase() === r;
+      const inType = !t || itemEl.dataset.type.toLowerCase() === t;
+      const inSector = !s || itemEl.dataset.sector.toLowerCase() === s;
+      const inStatus = !st || itemEl.dataset.status.toLowerCase() === st;
+
+      const searchable = `${itemEl.dataset.number} ${itemEl.dataset.title} ${itemEl.dataset.keywords}`;
+      const inKeyword = !k || searchable.includes(k);
+
+      return inRegion && inType && inSector && inStatus && inKeyword;
+    }
+
+    function filterItems() {
+      const categories = Array.from(document.querySelectorAll('.category'));
+      let totalVisibleItems = 0;
+
+      categories.forEach(cat => {
+        const items = Array.from(cat.querySelectorAll('.standard-item'));
+        let visibleInCategory = 0;
+
+        items.forEach(el => {
+          if (matchesFilters(el)) {
+            el.style.display = 'flex';
+            visibleInCategory++;
+          } else {
+            el.style.display = 'none';
+          }
+        });
+
+        // Update badge and category visibility
+        const badge = cat.querySelector('.count-badge');
+        if (badge) badge.textContent = visibleInCategory;
+        cat.style.display = visibleInCategory > 0 ? 'block' : 'none';
+
+        totalVisibleItems += visibleInCategory;
+      });
+
+      els.noResults.style.display = totalVisibleItems === 0 ? 'block' : 'none';
+
+      // Auto-open checklist for first visible item in selected sector
+      const sector = els.sectorFilter.value.trim();
+      if (sector) {
+        const firstVisible = Array.from(document.querySelectorAll('.standard-item'))
+          .find(item => item.style.display !== 'none' && item.dataset.sector === sector);
+        if (firstVisible) {
+          const stId = firstVisible.querySelector('.checklist-btn').dataset.id;
+          showChecklist(stId);
+        }
+      }
+    }
+
+    function attachFilters() {
+      ['change', 'input'].forEach(evt => {
+        els.regionFilter.addEventListener(evt, filterItems);
+        els.standardFilter.addEventListener(evt, filterItems);
+        els.sectorFilter.addEventListener(evt, filterItems);
+        els.statusFilter.addEventListener(evt, filterItems);
+        els.keywordFilter.addEventListener(evt, filterItems);
+      });
+
+      els.resetFilters.addEventListener('click', () => {
+        els.regionFilter.value = '';
+        els.standardFilter.value = '';
+        els.sectorFilter.value = '';
+        els.statusFilter.value = '';
+        els.keywordFilter.value = '';
+        filterItems();
+      });
+    }
+
+    function attachActions() {
+      document.querySelectorAll('.details-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const st = standards.find(s => s.id === btn.dataset.id);
+          if (!st) return;
+          alert(`${st.number} — ${st.title}\n\nType: ${st.type}\nSector: ${st.sector}\nRegion: ${st.region}\nStatus: ${st.status}\nUpdated: ${st.updated}`);
+        });
+      });
+
+      document.querySelectorAll('.checklist-btn').forEach(btn => {
+        btn.addEventListener('click', () => showChecklist(btn.dataset.id));
+      });
+    }
+
+    function showChecklist(standardId) {
+      const st = standards.find(s => s.id === standardId);
+      if (!st) return;
+      const checklist = sectorChecklists[st.sector] || [];
+      els.checklistTitle.textContent = `${st.number} — ${st.title}`;
+      els.checklistItems.innerHTML = '';
+
+      checklist.forEach(text => {
+        const li = document.createElement('li');
+        const id = `${st.id}-${text.replace(/\s+/g, '-').toLowerCase()}`;
+        li.innerHTML = `
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="${id}">
+            <span>${text}</span>
+          </label>
+        `;
+        els.checklistItems.appendChild(li);
+      });
+
+      loadChecklistState(standardId);
+      openModal();
+    }
+
+    function openModal() {
+      els.checklistModal.classList.add('modal-active');
+      els.checklistModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      els.checklistModal.classList.remove('modal-active');
+      els.checklistModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelector('.close-btn').addEventListener('click', closeModal);
+    els.checklistModal.addEventListener('click', (e) => { if (e.target === els.checklistModal) closeModal(); });
+
+    function storageKey(standardId) { return `checklist:${standardId}`; }
+
+    function saveChecklistState(standardId) {
+      const checks = Array.from(els.checklistItems.querySelectorAll('input[type="checkbox"]'))
+        .map(input => ({ id: input.id, checked: input.checked }));
+      localStorage.setItem(storageKey(standardId), JSON.stringify(checks));
+    }
+
+    function loadChecklistState(standardId) {
+      const saved = localStorage.getItem(storageKey(standardId));
+      if (!saved) return;
+      try {
+        const checks = JSON.parse(saved);
+        checks.forEach(({ id, checked }) => {
+          const el = document.getElementById(id);
+          if (el) el.checked = checked;
+        });
+      } catch {}
+    }
+
+    els.saveChecklist.addEventListener('click', () => {
+      const title = els.checklistTitle.textContent || '';
+      const st = standards.find(s => title.startsWith(s.number));
+      if (!st) return;
+      saveChecklistState(st.id);
+      els.saveChecklist.innerHTML = '<i class="fas fa-check"></i> Saved';
+      setTimeout(() => els.saveChecklist.innerHTML = '<i class="fas fa-save"></i> Save Progress', 1200);
+    });
+
+    // Initialize
+    render();
+    attachFilters();
+    filterItems();
+  </script>
+</body>
+</html>
